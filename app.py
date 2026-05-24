@@ -258,3 +258,8 @@ st.sidebar.divider()
 st.sidebar.subheader("Exportar")
 # Funções de PDF omitidas para brevidade, mas mantidas no fluxo original
 st.sidebar.info("Utilize os botões de PDF no Streamlit Cloud para gerar os arquivos.")
+# --- Exportação (Sempre visível na Sidebar) ---
+st.sidebar.markdown("---")
+st.sidebar.subheader("📥 Exportação")
+st.sidebar.download_button(label="📅 Baixar Cronograma (PDF)", data=gerar_pdf_cronograma(cronograma), file_name="cardapio_cronograma.pdf", mime="application/pdf")
+st.sidebar.download_button(label="🛒 Baixar Lista de Compras (PDF)", data=gerar_pdf_compras(cronograma, dados), file_name="lista_compras.pdf", mime="application/pdf")
