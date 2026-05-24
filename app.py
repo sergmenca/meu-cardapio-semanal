@@ -253,11 +253,6 @@ elif menu_selecionado == "Descrição das Refeições":
             for o in ref['opcoes']:
                 st.write(f"• {o['descricao']}")
 
-# --- EXPORTAÇÃO ---
-st.sidebar.divider()
-st.sidebar.subheader("Exportar")
-# Funções de PDF omitidas para brevidade, mas mantidas no fluxo original
-st.sidebar.info("Utilize os botões de PDF no Streamlit Cloud para gerar os arquivos.")
 # --- Exportação (Sempre visível na Sidebar) ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("📥 Exportação")
