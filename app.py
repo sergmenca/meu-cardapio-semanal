@@ -138,31 +138,31 @@ def gerar_pdf_compras(cronograma_data, dados_json):
             categorias_map[cat] = []
         categorias_map[cat].append((item, qtd))
     
-    pdf.set_font("Arial", '', 12)
-    # Itera sobre as categorias criadas
+    # Escreve no PDF separando por blocos de categorias
     for cat in sorted(categorias_map.keys()):
-        pdf.set_font("Arial", 'B', 14)
-        pdf.set_text_color(0, 50, 100) # Azul escuro para título da categoria
-        pdf.cell(0, 10, cat.upper(), ln=True)
+        pdf.ln(4)
+        pdf.set_font("Arial", 'B', 12)
+        pdf.set_fill_color(230, 240, 255) # Cor de fundo azul bem clara para o título do setor
+        pdf.cell(0, 8, f" {cat.upper()}", ln=True, fill=True)
+        pdf.ln(2)
         
-        pdf.set_font("Arial", '', 12)
-        pdf.set_text_color(0, 0, 0) # Volta para preto
+        pdf.set_font("Arial", '', 11)
         for item, qtd in sorted(categorias_map[cat]):
             if "(Kg)" in item or "(Pacote" in item or "(Dúzia)" in item:
                 linha = f"   [  ] {qtd} - {item}"
             else:
                 linha = f"   [  ] {qtd} un. - {item}"
-            pdf.cell(0, 8, linha.encode('latin-1', 'replace').decode('latin-1'), ln=True)
-        pdf.ln(5) # Espaço entre categorias
+            pdf.cell(0, 7, linha.encode('latin-1', 'replace').decode('latin-1'), ln=True)
         
     return pdf.output(dest='S').encode('latin-1')
-
+    
 # --- Conexão Inteligente com o Google Sheets ---
 @st.cache_data(ttl=10)
 def buscar_precos_nuvem():
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
-        df_planilha = conn.read(worksheet="Precos", usecols=[0, 1])
+        # CORREÇÃO: Adicionado o "spreadsheet" apontando para o segredo
+        df_planilha = conn.read(spreadsheet=st.secrets["spreadsheet_url"], worksheet="Precos", usecols=[0, 1])
         df_planilha = df_planilha.dropna(subset=['Item'])
         return dict(zip(df_planilha['Item'], df_planilha['Preco']))
     except Exception as e:
@@ -322,8 +322,22 @@ elif menu_selecionado == "🛒 Lista & Custos":
             with col2:
                 st.markdown(f"<h2 style='text-align: right; color: #27AE60;'>✅ No Carrinho: R$ {valor_carrinho:.2f}</h2>", unsafe_allow_html=True)
             
-            if st.button("💾 Salvar Novos Preços"):
+         if st.button("💾 Salvar Novos Preços Definitivamente"):
                 try:
+                    novos_precos = precos_base.copy()
+                    for idx, row in df_editado.iterrows():
+                        novos_precos[row['Item']] = row['Preço Unit (R$)']
+                        
+                    df_salvar = pd.DataFrame(list(novos_precos.items()), columns=['Item', 'Preco'])
+                    
+                    with st.spinner("Atualizando banco de dados no Google..."):
+                        conn = st.connection("gsheets", type=GSheetsConnection)
+                        # CORREÇÃO: Adicionado o "spreadsheet" aqui também para salvar no lugar certo
+                        conn.update(spreadsheet=st.secrets["spreadsheet_url"], worksheet="Precos", data=df_salvar)
+                        st.cache_data.clear() 
+                        st.success("✅ Sucesso! Os novos preços já estão no banco de dados para a próxima semana.")
+                except Exception as e:
+                    st.error(f"Erro ao salvar na nuvem: {e}")
                     # Filtramos apenas as colunas que interessam para o banco de dados
                     df_salvar = df_editado[['Item', 'Preço Unit (R$)']].rename(columns={'Preço Unit (R$)': 'Preco'})
                     
