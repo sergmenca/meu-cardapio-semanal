@@ -253,7 +253,7 @@ elif menu_selecionado == "Descrição das Refeições":
             for o in ref['opcoes']:
                 st.write(f"• {o['descricao']}")
 
-# --- Exportação (Sempre visível na Sidebar) ---
+# --- Exportação ---
 st.sidebar.markdown("---")
 st.sidebar.subheader("📥 Exportação")
 st.sidebar.download_button(label="📅 Baixar Cronograma (PDF)", data=gerar_pdf_cronograma(cronograma), file_name="cardapio_cronograma.pdf", mime="application/pdf")
