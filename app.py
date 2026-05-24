@@ -242,9 +242,16 @@ if menu_selecionado == "🗓️ Planejamento Semanal":
 
 # TELA 2: Lista & Custos
 elif menu_selecionado == "🛒 Lista & Custos":
-    st.subheader("💲 Checklist de Supermercado em Tempo Real")
-    st.markdown("Marque o que pegou na prateleira e ajuste o preço se houver mudança. Depois, clique em **Salvar Preços Definitivamente** para o app aprender a inflação de hoje!")
+    st.subheader("💲 Checklist de Supermercado")
     
+    # 1. Definimos a função de categoria aqui dentro (ou no topo do arquivo)
+    def obter_categoria(item):
+        if any(x in item for x in ["Filé", "Patinho", "Salmão", "Ovos", "Carne", "Tilápia"]): return "Proteínas"
+        if any(x in item for x in ["Arroz", "Feijão", "Tapioca", "Aveia", "Cuscuz", "Macarrão", "Pão", "Rap10", "Grão"]): return "Mercearia"
+        if any(x in item for x in ["Maçã", "Banana", "Mamão", "Morango", "Alface", "Tomate", "Cenoura", "Mandioca", "Batata"]): return "Hortifruti"
+        if any(x in item for x in ["Queijo", "Requeijão", "Ricota"]): return "Laticínios"
+        return "Outros"
+
     if cronograma:
         lista_compras = gerar_lista_compras(cronograma, dados)
         precos_base = buscar_precos_nuvem() 
@@ -258,19 +265,22 @@ elif menu_selecionado == "🛒 Lista & Custos":
                         preco_unit = float(v)
                         break
 
+            # 2. Adicionamos a categoria na criação da linha
             tabela_custos.append({
                 "Peguei": False, 
+                "Categoria": obter_categoria(item), # <--- AQUI A CATEGORIA ENTRA
                 "Item": item,
                 "Qtd": qtd,
                 "Preço Unit (R$)": float(preco_unit)
             })
             
-        df_custos = pd.DataFrame(tabela_custos)
+        # 3. Criamos o DataFrame e já ordenamos por categoria
+        df_custos = pd.DataFrame(tabela_custos).sort_values("Categoria")
         
         if not df_custos.empty:
             df_editado = st.data_editor(
                 df_custos,
-                disabled=["Item", "Qtd"],
+                disabled=["Item", "Qtd", "Categoria"], # "Categoria" bloqueada para edição
                 hide_index=True,
                 use_container_width=True,
                 column_config={
@@ -286,26 +296,22 @@ elif menu_selecionado == "🛒 Lista & Custos":
             st.divider()
             col1, col2 = st.columns(2)
             with col1:
-                st.markdown(f"<h3 style='color: #888;'>🛒 Total da Semana: R$ {valor_total:.2f}</h3>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='color: #888;'>🛒 Total: R$ {valor_total:.2f}</h3>", unsafe_allow_html=True)
             with col2:
                 st.markdown(f"<h2 style='text-align: right; color: #27AE60;'>✅ No Carrinho: R$ {valor_carrinho:.2f}</h2>", unsafe_allow_html=True)
             
-            st.markdown("---")
-            if st.button("💾 Salvar Novos Preços Definitivamente"):
+            if st.button("💾 Salvar Novos Preços"):
                 try:
-                    novos_precos = precos_base.copy()
-                    for idx, row in df_editado.iterrows():
-                        novos_precos[row['Item']] = row['Preço Unit (R$)']
-                        
-                    df_salvar = pd.DataFrame(list(novos_precos.items()), columns=['Item', 'Preco'])
+                    # Filtramos apenas as colunas que interessam para o banco de dados
+                    df_salvar = df_editado[['Item', 'Preço Unit (R$)']].rename(columns={'Preço Unit (R$)': 'Preco'})
                     
-                    with st.spinner("Atualizando banco de dados no Google..."):
+                    with st.spinner("Atualizando banco de dados..."):
                         conn = st.connection("gsheets", type=GSheetsConnection)
                         conn.update(worksheet="Precos", data=df_salvar)
                         st.cache_data.clear() 
-                        st.success("✅ Sucesso! Os novos preços já estão no banco de dados para a próxima semana.")
+                        st.success("✅ Sucesso!")
                 except Exception as e:
-                    st.error(f"Erro ao salvar na nuvem: {e}")
+                    st.error(f"Erro: {e}")
 
 # TELA 3: Descrição das Refeições
 elif menu_selecionado == "📖 Descrição das Refeições":
