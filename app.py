@@ -148,7 +148,7 @@ def buscar_precos_nuvem():
         return carregar_dados().get('precos_estimados', {})
 
 # --- 4. INTERFACE PRINCIPAL ---
-st.title("Cardápio Semanal Profissional")
+st.title("Cardápio Semanal")
 dados = carregar_dados()
 
 if 'escolhas_cardapio' not in st.session_state:
