@@ -11,6 +11,39 @@ from streamlit_gsheets import GSheetsConnection
 # --- Configuração ---
 st.set_page_config(page_title="Cardápio Semanal", layout="wide")
 
+# ---> O NOVO CÓDIGO CSS ENTRA AQUI:
+st.markdown("""
+    <style>
+        /* Fundo de toda a página em Azul Marinho */
+        .stApp {
+            background-color: #002B5B; 
+        }
+        
+        /* Todos os textos, títulos e labels em Branco */
+        h1, h2, h3, h4, p, li, label, div {
+            color: #FFFFFF !important;
+        }
+        
+        /* Ajuste específico para a Sidebar para manter o contraste */
+        [data-testid="stSidebar"] {
+            background-color: #001f3f; 
+        }
+        
+        /* Ajuste dos inputs e selectboxes */
+        .stSelectbox div[data-baseweb="select"] {
+            background-color: #001f3f !important;
+            color: white !important;
+        }
+        
+        /* Botões */
+        div.stButton > button:first-child {
+            background-color: #FFFFFF;
+            color: #002B5B;
+            font-weight: bold;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 @st.cache_data
 def carregar_dados():
     with open('dieta.json', 'r', encoding='utf-8') as f:
