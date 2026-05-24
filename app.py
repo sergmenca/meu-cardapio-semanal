@@ -143,7 +143,7 @@ def buscar_precos_nuvem():
 
 
 # --- Interface Principal ---
-st.title("🥗 Cardápio Semanal - Ateliê de Ideias para Espaços")
+st.title("🥗 Cardápio Semanal")
 dados = carregar_dados()
 
 # --- Configuração de Memória (Session State) ---
