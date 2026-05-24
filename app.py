@@ -25,6 +25,14 @@ def aplicar_substituicoes(texto, lista_frutas, lista_saladas):
         texto = texto.replace("Salada", random.choice(lista_saladas))
     return texto
 
+# adicionar categoria aos alimentos
+def obter_categoria(item):
+        if any(x in item for x in ["Filé", "Patinho", "Salmão", "Ovos", "Carne", "Tilápia"]): return "Proteínas"
+        if any(x in item for x in ["Arroz", "Feijão", "Tapioca", "Aveia", "Cuscuz", "Macarrão", "Pão", "Rap10", "Grão"]): return "Mercearia"
+        if any(x in item for x in ["Maçã", "Banana", "Mamão", "Morango", "Alface", "Tomate", "Cenoura", "Mandioca", "Batata"]): return "Hortifruti"
+        if any(x in item for x in ["Queijo", "Requeijão", "Ricota"]): return "Laticínios"
+        return "Outros"
+
 # --- Lógica da Lista de Compras ---
 def gerar_lista_compras(cronograma, dados):
     compras = {}
@@ -119,14 +127,34 @@ def gerar_pdf_compras(cronograma_data, dados_json):
     pdf.set_font("Arial", 'B', 20)
     pdf.cell(0, 15, "LISTA DE COMPRAS", ln=True, align='C')
     pdf.ln(5)
+    
     lista_compras = gerar_lista_compras(cronograma_data, dados_json)
+    
+    # Organiza os itens por categoria
+    categorias_map = {}
+    for item, qtd in lista_compras.items():
+        cat = obter_categoria(item)
+        if cat not in categorias_map:
+            categorias_map[cat] = []
+        categorias_map[cat].append((item, qtd))
+    
     pdf.set_font("Arial", '', 12)
-    for item, qtd in sorted(lista_compras.items()):
-        if "(Kg)" in item or "(Pacote" in item or "(Dúzia)" in item:
-            linha = f"[  ] {qtd} - {item}"
-        else:
-            linha = f"[  ] {qtd} un. - {item}"
-        pdf.cell(0, 8, linha.encode('latin-1', 'replace').decode('latin-1'), ln=True)
+    # Itera sobre as categorias criadas
+    for cat in sorted(categorias_map.keys()):
+        pdf.set_font("Arial", 'B', 14)
+        pdf.set_text_color(0, 50, 100) # Azul escuro para título da categoria
+        pdf.cell(0, 10, cat.upper(), ln=True)
+        
+        pdf.set_font("Arial", '', 12)
+        pdf.set_text_color(0, 0, 0) # Volta para preto
+        for item, qtd in sorted(categorias_map[cat]):
+            if "(Kg)" in item or "(Pacote" in item or "(Dúzia)" in item:
+                linha = f"   [  ] {qtd} - {item}"
+            else:
+                linha = f"   [  ] {qtd} un. - {item}"
+            pdf.cell(0, 8, linha.encode('latin-1', 'replace').decode('latin-1'), ln=True)
+        pdf.ln(5) # Espaço entre categorias
+        
     return pdf.output(dest='S').encode('latin-1')
 
 # --- Conexão Inteligente com o Google Sheets ---
@@ -245,12 +273,6 @@ elif menu_selecionado == "🛒 Lista & Custos":
     st.subheader("💲 Checklist de Supermercado")
     
     # 1. Definimos a função de categoria aqui dentro (ou no topo do arquivo)
-    def obter_categoria(item):
-        if any(x in item for x in ["Filé", "Patinho", "Salmão", "Ovos", "Carne", "Tilápia"]): return "Proteínas"
-        if any(x in item for x in ["Arroz", "Feijão", "Tapioca", "Aveia", "Cuscuz", "Macarrão", "Pão", "Rap10", "Grão"]): return "Mercearia"
-        if any(x in item for x in ["Maçã", "Banana", "Mamão", "Morango", "Alface", "Tomate", "Cenoura", "Mandioca", "Batata"]): return "Hortifruti"
-        if any(x in item for x in ["Queijo", "Requeijão", "Ricota"]): return "Laticínios"
-        return "Outros"
 
     if cronograma:
         lista_compras = gerar_lista_compras(cronograma, dados)
