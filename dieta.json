@@ -1,0 +1,77 @@
+{
+  "frutas_disponiveis": [
+    "Maçã", "Banana", "Manga", "Melão", "Mamão", "Melancia", "Abacaxi", "Morango", "Kiwi", "Tangerina", "Pêssego", "Uva", "Caju", "Ameixa", "Pêra", "Goiaba"
+  ],
+  "saladas_disponiveis": [
+    "Alface", "Tomate", "Cenoura ralada", "Pepino", "Rúcula", "Agrião", "Beterraba ralada", "Espinafre", "Repolho roxo", "Brocolis cozido", "Abóbora moranga", "Abobrinha", "Acelga", "Agrião", "Aipo", "Alface", "Almeirão", "Aspargos", "Berinjela", "Cebola", "Cenoura", "Chuchu", "Palmito", "Pepino", "Pimentão", "Rúcula", "Tomate", "Vagem"
+  ],
+  "refeicoes": [
+    {
+      "nome": "Café da manhã",
+      "horario": "08:00",
+      "opcoes": [
+        {"descricao": "Principal: Tapioca de goma (4 colheres) + Ovo inteiro (2 un.) + 1 Fruta", "custo": 4.50},
+        {"descricao": "Substituição 1: Ovo inteiro (2 un.) + 2 Frutas + Aveia em flocos (1 colher) + Cacau (1 colher)", "custo": 6.00},
+        {"descricao": "Substituição 2: Pão francês (1 un.) + Ovo inteiro (2 un.) + 1 Fruta + Aveia (1 colher)", "custo": 5.00},
+        {"descricao": "Substituição 3: Cuscuz (120g) + Ovo inteiro (2 un.) + 1 Fruta + Aveia (1 colher)", "custo": 3.50}
+      ]
+    },
+    {
+      "nome": "Colação",
+      "horario": "10:00",
+      "opcoes": [
+        {"descricao": "Principal: Castanha de caju (10 un.) + 1 Fruta", "custo": 5.50},
+        {"descricao": "Substituição 1: Pasta de amendoim (1 colher) + 1 Fruta", "custo": 3.00},
+        {"descricao": "Substituição 2: Castanha do Pará (4 un.) + 1 Fruta", "custo": 6.50},
+        {"descricao": "Substituição 3: Amendoim in natura (20 un.) + 1 Fruta", "custo": 2.50},
+        {"descricao": "Substituição 4: Amêndoa (20 un.) + 1 Fruta", "custo": 7.00},
+        {"descricao": "Substituição 5: Chocolate 70% Cacau (2 pedaços) + 1 Fruta", "custo": 8.00}
+      ]
+    },
+    {
+      "nome": "Almoço",
+      "horario": "13:00",
+      "opcoes": [
+        {"descricao": "Principal: Filé de frango (100g) + Arroz (2 colheres) + Feijão (1 concha) + Salada", "custo": 8.50},
+        {"descricao": "Substituição 1: Patinho assado (80g) + Arroz (1 colher) + Mandioca (45g) + Feijão (1 concha) + Salada", "custo": 12.00},
+        {"descricao": "Substituição 2: Filé de tilápia (2 pedaços) + Arroz (1 colher) + Batata (100g) + Grão de bico (2 colheres) + Salada", "custo": 14.50},
+        {"descricao": "Substituição 3: Salmão cozido (90g) + Arroz (1 colher) + Batata baroa (70g) + Ervilha (3 colheres) + Salada", "custo": 22.00},
+        {"descricao": "Substituição 4: Patinho moído (80g) + Macarrão (3 colheres) + Salada", "custo": 10.50}
+      ]
+    },
+    {
+      "nome": "Lanche da tarde",
+      "horario": "16:00",
+      "opcoes": [
+        {"descricao": "Principal: Pão integral (2 fatias) + Queijo minas frescal (1 fatia)", "custo": 4.00},
+        {"descricao": "Substituição 1: Rap10 integral (1 un.) + Ovo inteiro (1 un.)", "custo": 3.50},
+        {"descricao": "Substituição 2: Rap10 integral (1 un.) + Requeijão light (1 colher)", "custo": 4.50},
+        {"descricao": "Substituição 3: Pão integral (2 fatias) + Creme de ricota (1 colher)", "custo": 4.00},
+        {"descricao": "Substituição 4: Rap10 integral (1 un.) + Patinho moído (36g)", "custo": 6.00}
+      ]
+    },
+    {
+      "nome": "Pré-treino",
+      "horario": "18:00",
+      "opcoes": [
+        {"descricao": "Principal: 2 Frutas + Aveia (1 colher) + Mel (1 colher) + Cacau em pó (1 colher)", "custo": 5.00},
+        {"descricao": "Substituição 1: 2 Frutas + Doce de leite (2 colheres)", "custo": 4.00},
+        {"descricao": "Substituição 2: Pão integral (2 fatias) + Geleia 100% fruta (2 colheres) + 1 Fruta", "custo": 4.50},
+        {"descricao": "Substituição 3: Suco de uva integral (2 copos médios)", "custo": 6.00},
+        {"descricao": "Substituição 4: Paçoca (2 un.)", "custo": 2.00},
+        {"descricao": "Substituição 5: Açaí s/ açúcar (100g) + Whey Protein (1 colher) + 1 Fruta + Mel (1 colher) + Aveia", "custo": 12.00}
+      ]
+    },
+    {
+      "nome": "Jantar",
+      "horario": "20:00",
+      "opcoes": [
+        {"descricao": "Principal: Filé de frango (100g) + Arroz (2 colheres) + Feijão (1 concha) + Salada", "custo": 8.50},
+        {"descricao": "Substituição 1: Filé-mignon (80g) + Arroz (1 colher) + Batata doce (50g) + Feijão (1 concha) + Salada", "custo": 18.00},
+        {"descricao": "Substituição 2: Pão de hambúrguer (2 fatias) + Hambúrguer de Patinho (80g) + Queijo mussarela (1 fatia) + Salada", "custo": 13.00},
+        {"descricao": "Substituição 3: Hambúrguer de Frango (100g) + Arroz (1 colher) + Purê de batatas (50g) + Feijão (100g) + Salada", "custo": 9.50},
+        {"descricao": "Substituição 4: Atum (4 colheres) + Macarrão (3 colheres) + Salada", "custo": 7.50}
+      ]
+    }
+  ]
+}
