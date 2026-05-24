@@ -26,12 +26,55 @@ def aplicar_substituicoes(texto, lista_frutas, lista_saladas):
     return texto
 
 # --- Adicionar categoria aos alimentos ---
+# --- Adicionar categoria aos alimentos ---
 def obter_categoria(item):
-    if any(x in item for x in ["Filé", "Patinho", "Salmão", "Ovos", "Carne", "Tilápia"]): return "Proteínas"
-    if any(x in item for x in ["Arroz", "Feijão", "Tapioca", "Aveia", "Cuscuz", "Macarrão", "Pão", "Rap10", "Grão"]): return "Mercearia"
-    if any(x in item for x in ["Maçã", "Banana", "Mamão", "Morango", "Alface", "Tomate", "Cenoura", "Mandioca", "Batata"]): return "Hortifruti"
-    if any(x in item for x in ["Queijo", "Requeijão", "Ricota"]): return "Laticínios"
-    return "Outros"
+    item_lower = item.lower()
+    
+    # Carnes e Peixes
+    if any(x in item_lower for x in ["filé", "patinho", "salmão", "carne", "tilápia", "frango", "atum", "peixe", "mignon"]): 
+        return "Açougue e Peixaria"
+    
+    # Laticínios e Ovos
+    if any(x in item_lower for x in ["queijo", "requeijão", "ricota", "ovo", "leite", "iogurte", "manteiga"]): 
+        return "Laticínios e Ovos"
+    
+    # Frutas
+    if any(x in item_lower for x in ["maçã", "banana", "mamão", "morango", "melão", "melancia", "abacaxi", "kiwi", "tangerina", "pêssego", "uva", "caju", "ameixa", "pêra", "goiaba", "manga", "açai", "açaí", "limão"]): 
+        return "Frutas"
+    
+    # Verduras (Folhas)
+    if any(x in item_lower for x in ["alface", "rúcula", "agrião", "espinafre", "couve", "repolho", "acelga", "brócolis"]): 
+        return "Verduras (Folhas)"
+    
+    # Legumes e Tubérculos
+    if any(x in item_lower for x in ["tomate", "cenoura", "mandioca", "batata", "abobrinha", "cebola", "pepino", "pimentão", "alho", "berinjela", "chuchu"]): 
+        return "Legumes e Tubérculos"
+    
+    # Grãos e Cereais
+    if any(x in item_lower for x in ["arroz", "feijão", "aveia", "cuscuz", "grão", "ervilha", "lentilha", "soja", "milho"]): 
+        return "Grãos e Cereais"
+    
+    # Padaria e Massas
+    if any(x in item_lower for x in ["tapioca", "macarrão", "pão", "rap10", "massa", "bolo"]): 
+        return "Padaria e Massas"
+    
+    # Castanhas e Sementes
+    if any(x in item_lower for x in ["castanha", "amendoim", "amêndoa", "nozes", "chia", "linhaça"]): 
+        return "Castanhas e Sementes"
+    
+    # Doces e Geleias
+    if any(x in item_lower for x in ["mel", "doce", "geleia", "chocolate", "cacau", "paçoca", "açúcar"]): 
+        return "Doces e Ingredientes"
+    
+    # Bebidas
+    if any(x in item_lower for x in ["suco", "café", "chá", "água"]): 
+        return "Bebidas"
+    
+    # Suplementos
+    if any(x in item_lower for x in ["whey", "creatina", "albumina", "suplemento"]): 
+        return "Suplementos"
+    
+    return "Outros (Mercearia)"
 
 # --- Lógica da Lista de Compras ---
 def gerar_lista_compras(cronograma, dados):
