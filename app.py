@@ -25,13 +25,13 @@ def aplicar_substituicoes(texto, lista_frutas, lista_saladas):
         texto = texto.replace("Salada", random.choice(lista_saladas))
     return texto
 
-# adicionar categoria aos alimentos
+# --- Adicionar categoria aos alimentos ---
 def obter_categoria(item):
-        if any(x in item for x in ["Filé", "Patinho", "Salmão", "Ovos", "Carne", "Tilápia"]): return "Proteínas"
-        if any(x in item for x in ["Arroz", "Feijão", "Tapioca", "Aveia", "Cuscuz", "Macarrão", "Pão", "Rap10", "Grão"]): return "Mercearia"
-        if any(x in item for x in ["Maçã", "Banana", "Mamão", "Morango", "Alface", "Tomate", "Cenoura", "Mandioca", "Batata"]): return "Hortifruti"
-        if any(x in item for x in ["Queijo", "Requeijão", "Ricota"]): return "Laticínios"
-        return "Outros"
+    if any(x in item for x in ["Filé", "Patinho", "Salmão", "Ovos", "Carne", "Tilápia"]): return "Proteínas"
+    if any(x in item for x in ["Arroz", "Feijão", "Tapioca", "Aveia", "Cuscuz", "Macarrão", "Pão", "Rap10", "Grão"]): return "Mercearia"
+    if any(x in item for x in ["Maçã", "Banana", "Mamão", "Morango", "Alface", "Tomate", "Cenoura", "Mandioca", "Batata"]): return "Hortifruti"
+    if any(x in item for x in ["Queijo", "Requeijão", "Ricota"]): return "Laticínios"
+    return "Outros"
 
 # --- Lógica da Lista de Compras ---
 def gerar_lista_compras(cronograma, dados):
@@ -108,7 +108,7 @@ def gerar_pdf_cronograma(cronograma_data):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, "Cardápio Semanal", ln=True, align='C')
+    pdf.cell(0, 10, "Cardapio Semanal", ln=True, align='C')
     df = pd.DataFrame(cronograma_data)
     if not df.empty:
         for data in df['Data'].unique():
@@ -142,7 +142,7 @@ def gerar_pdf_compras(cronograma_data, dados_json):
     for cat in sorted(categorias_map.keys()):
         pdf.ln(4)
         pdf.set_font("Arial", 'B', 12)
-        pdf.set_fill_color(230, 240, 255) # Cor de fundo azul bem clara para o título do setor
+        pdf.set_fill_color(230, 240, 255) # Cor de fundo azul bem clara
         pdf.cell(0, 8, f" {cat.upper()}", ln=True, fill=True)
         pdf.ln(2)
         
@@ -155,13 +155,12 @@ def gerar_pdf_compras(cronograma_data, dados_json):
             pdf.cell(0, 7, linha.encode('latin-1', 'replace').decode('latin-1'), ln=True)
         
     return pdf.output(dest='S').encode('latin-1')
-    
+
 # --- Conexão Inteligente com o Google Sheets ---
 @st.cache_data(ttl=10)
 def buscar_precos_nuvem():
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
-        # CORREÇÃO: Adicionado o "spreadsheet" apontando para o segredo
         df_planilha = conn.read(spreadsheet=st.secrets["spreadsheet_url"], worksheet="Precos", usecols=[0, 1])
         df_planilha = df_planilha.dropna(subset=['Item'])
         return dict(zip(df_planilha['Item'], df_planilha['Preco']))
@@ -175,13 +174,11 @@ st.title("🥗 Cardápio Semanal")
 dados = carregar_dados()
 
 # --- Configuração de Memória (Session State) ---
-# Evita que o cronograma zere ao mudar de aba lateral
 if 'escolhas_cardapio' not in st.session_state:
     st.session_state['escolhas_cardapio'] = {}
 
 def salvar_escolha(chave):
     st.session_state['escolhas_cardapio'][chave] = st.session_state[chave]
-
 
 # --- SIDEBAR: Menu e Configurações ---
 st.sidebar.title("🧭 Menu Principal")
@@ -210,157 +207,4 @@ data_hoje = datetime.now()
 dias_info = [{"label": (data_hoje + timedelta(days=i)).strftime('%d/%m\n%A').capitalize(), 
               "data_str": (data_hoje + timedelta(days=i)).strftime("%d/%m/%Y")} for i in range(num_dias)]
 
-
-# --- CONSTRUTOR GLOBAL DO CRONOGRAMA ---
-# Roda sempre, independente da tela, para garantir que a Lista de Compras tenha os dados
-cronograma = []
-for dia in dias_info:
-    for ref in dados['refeicoes']:
-        chave_unica = f"{dia['data_str']}_{ref['nome']}"
-        
-        random.seed(chave_unica)
-        opcoes = [aplicar_substituicoes(o['descricao'], frutas_selecionadas, dados.get('saladas_disponiveis', [])) for o in ref['opcoes']]
-        random.seed()
-
-        if chave_unica in st.session_state['escolhas_cardapio']:
-            item_atual = st.session_state['escolhas_cardapio'][chave_unica]
-        else:
-            item_atual = opcoes[0]
-            st.session_state['escolhas_cardapio'][chave_unica] = item_atual
-            
-        cronograma.append({
-            "Data": dia['data_str'], 
-            "Refeição": ref['nome'], 
-            "Item": item_atual, 
-            "Opcoes": opcoes, 
-            "Chave": chave_unica
-        })
-
-
-# --- CONTEÚDO DINÂMICO DA PÁGINA ---
-
-# TELA 1: Planejamento
-if menu_selecionado == "🗓️ Planejamento Semanal":
-    cols = st.columns(min(num_dias, 7)) 
-    for i, dia in enumerate(dias_info):
-        col = cols[i % 7]
-        with col:
-            st.markdown(f"### <span style='color: #4A90E2;'>{dia['label']}</span>", unsafe_allow_html=True)
-            st.divider()
-            
-            itens_do_dia = [c for c in cronograma if c["Data"] == dia['data_str']]
-            
-            for prato in itens_do_dia:
-                chave = prato["Chave"]
-                opcoes = prato["Opcoes"]
-                
-                try:
-                    idx = opcoes.index(prato["Item"])
-                except:
-                    idx = 0
-                    
-                st.selectbox(
-                    f"{prato['Refeição']}", 
-                    opcoes, 
-                    index=idx,
-                    key=chave,
-                    on_change=salvar_escolha,
-                    args=(chave,)
-                )
-
-# TELA 2: Lista & Custos
-elif menu_selecionado == "🛒 Lista & Custos":
-    st.subheader("💲 Checklist de Supermercado")
-    
-    # 1. Definimos a função de categoria aqui dentro (ou no topo do arquivo)
-
-    if cronograma:
-        lista_compras = gerar_lista_compras(cronograma, dados)
-        precos_base = buscar_precos_nuvem() 
-        
-        tabela_custos = []
-        for item, qtd in sorted(lista_compras.items()):
-            preco_unit = precos_base.get(item, 0.0)
-            if preco_unit == 0.0:
-                for k, v in precos_base.items():
-                    if k.lower() == item.lower():
-                        preco_unit = float(v)
-                        break
-
-            # 2. Adicionamos a categoria na criação da linha
-            tabela_custos.append({
-                "Peguei": False, 
-                "Categoria": obter_categoria(item), # <--- AQUI A CATEGORIA ENTRA
-                "Item": item,
-                "Qtd": qtd,
-                "Preço Unit (R$)": float(preco_unit)
-            })
-            
-        # 3. Criamos o DataFrame e já ordenamos por categoria
-        df_custos = pd.DataFrame(tabela_custos).sort_values("Categoria")
-        
-        if not df_custos.empty:
-            df_editado = st.data_editor(
-                df_custos,
-                disabled=["Item", "Qtd", "Categoria"], # "Categoria" bloqueada para edição
-                hide_index=True,
-                use_container_width=True,
-                column_config={
-                    "Peguei": st.column_config.CheckboxColumn("✅ Peguei", default=False),
-                    "Preço Unit (R$)": st.column_config.NumberColumn("Preço Unit (R$)", min_value=0.0, format="R$ %.2f")
-                }
-            )
-            
-            df_editado['Subtotal'] = df_editado['Qtd'] * df_editado['Preço Unit (R$)']
-            valor_total = df_editado['Subtotal'].sum()
-            valor_carrinho = df_editado[df_editado['Peguei'] == True]['Subtotal'].sum()
-            
-            st.divider()
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f"<h3 style='color: #888;'>🛒 Total: R$ {valor_total:.2f}</h3>", unsafe_allow_html=True)
-            with col2:
-                st.markdown(f"<h2 style='text-align: right; color: #27AE60;'>✅ No Carrinho: R$ {valor_carrinho:.2f}</h2>", unsafe_allow_html=True)
-            
-         if st.button("💾 Salvar Novos Preços Definitivamente"):
-                try:
-                    novos_precos = precos_base.copy()
-                    for idx, row in df_editado.iterrows():
-                        novos_precos[row['Item']] = row['Preço Unit (R$)']
-                        
-                    df_salvar = pd.DataFrame(list(novos_precos.items()), columns=['Item', 'Preco'])
-                    
-                    with st.spinner("Atualizando banco de dados no Google..."):
-                        conn = st.connection("gsheets", type=GSheetsConnection)
-                        # CORREÇÃO: Adicionado o "spreadsheet" aqui também para salvar no lugar certo
-                        conn.update(spreadsheet=st.secrets["spreadsheet_url"], worksheet="Precos", data=df_salvar)
-                        st.cache_data.clear() 
-                        st.success("✅ Sucesso! Os novos preços já estão no banco de dados para a próxima semana.")
-                except Exception as e:
-                    st.error(f"Erro ao salvar na nuvem: {e}")
-                    # Filtramos apenas as colunas que interessam para o banco de dados
-                    df_salvar = df_editado[['Item', 'Preço Unit (R$)']].rename(columns={'Preço Unit (R$)': 'Preco'})
-                    
-                    with st.spinner("Atualizando banco de dados..."):
-                        conn = st.connection("gsheets", type=GSheetsConnection)
-                        conn.update(worksheet="Precos", data=df_salvar)
-                        st.cache_data.clear() 
-                        st.success("✅ Sucesso!")
-                except Exception as e:
-                    st.error(f"Erro: {e}")
-
-# TELA 3: Descrição das Refeições
-elif menu_selecionado == "📖 Descrição das Refeições":
-    st.subheader("📋 Detalhamento de Metas e Substituições")
-    for ref in dados['refeicoes']:
-        horario_str = f" às {ref['horario']}" if 'horario' in ref else ""
-        with st.expander(f"🔍 {ref['nome']}{horario_str}", expanded=True):
-            for o in ref['opcoes']:
-                st.markdown(f" * {o['descricao']}")
-
-
-# --- Exportação (Sempre visível na Sidebar) ---
-st.sidebar.markdown("---")
-st.sidebar.subheader("📥 Exportação")
-st.sidebar.download_button(label="📅 Baixar Cronograma (PDF)", data=gerar_pdf_cronograma(cronograma), file_name="cardapio_cronograma.pdf", mime="application/pdf")
-st.sidebar.download_button(label="🛒 Baixar Lista de Compras (PDF)", data=gerar_pdf_compras(cronograma, dados), file_name="lista_compras.pdf", mime="application/pdf")
+# ---
