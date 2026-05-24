@@ -16,7 +16,6 @@ def carregar_dados():
         return json.load(f)
 
 def aplicar_substituicoes(texto, lista_frutas, lista_saladas):
-    # CORREÇÃO: Adicionada verificação se a lista não está vazia para evitar erro no random.choice
     if "Frutas" in texto and lista_frutas:
         texto = texto.replace("Frutas", random.choice(lista_frutas))
     if "Fruta" in texto and lista_frutas:
@@ -38,19 +37,25 @@ def gerar_lista_compras(cronograma, dados):
         for ing in ingredientes:
             ing_lower = ing.lower()
             
-            # --- Regras de Parametrização Comercial ---
+            # --- Regras de Parametrização Comercial (Alinhadas com o JSON) ---
             if "arroz" in ing_lower:
-                compras["Arroz (Pacote 5kg)"] = 1
+                compras["Arroz branco (Pacote 5kg)"] = 1
             elif "feijão" in ing_lower or "feijao" in ing_lower:
                 compras["Feijão (Pacote 1kg)"] = 1
             elif "ovo" in ing_lower:
                 match_ovo = re.search(r'\((\d+)\s*un', ing_lower)
                 qtd_ovo = int(match_ovo.group(1)) if match_ovo else 2
                 compras["Ovos (Unidades)"] = compras.get("Ovos (Unidades)", 0) + qtd_ovo
-            elif "frango" in ing_lower:
+            elif "frango" in ing_lower and not "hamburger" in ing_lower:
                 compras["Filé de Frango (Kg)"] = compras.get("Filé de Frango (Kg)", 0.0) + 0.15
             elif "patinho" in ing_lower or "carne" in ing_lower:
                 compras["Patinho/Carne Magra (Kg)"] = compras.get("Patinho/Carne Magra (Kg)", 0.0) + 0.15
+            elif "tilápia" in ing_lower or "tilapia" in ing_lower:
+                compras["Filé de tilápia (Kg)"] = compras.get("Filé de tilápia (Kg)", 0.0) + 0.20
+            elif "salmão" in ing_lower or "salmao" in ing_lower:
+                compras["Salmão (Kg)"] = compras.get("Salmão (Kg)", 0.0) + 0.20
+            elif "mignon" in ing_lower:
+                compras["Filé-mignon (Kg)"] = compras.get("Filé-mignon (Kg)", 0.0) + 0.15
             elif "tapioca" in ing_lower:
                 compras["Goma de Tapioca (Pacote 500g)"] = compras.get("Goma de Tapioca (Pacote 500g)", 0) + 1
             else:
@@ -132,7 +137,7 @@ def gerar_pdf_compras(cronograma_data, dados_json):
 
 
 # --- Interface ---
-st.title("🥗 Cardápio Semanal")
+st.title("🥗 Cardápio Semanal - Ateliê de Ideias para Espaços")
 dados = carregar_dados()
 
 # --- SIDEBAR ---
@@ -157,7 +162,7 @@ dias_info = [{"label": (data_hoje + timedelta(days=i)).strftime('%d/%m\n%A').cap
               "data_str": (data_hoje + timedelta(days=i)).strftime("%d/%m/%Y")} for i in range(num_dias)]
 
 # --- Criação das Abas de Navegação ---
-tab_planejamento, tab_descricao = st.tabs(["🗓️ Planejamento Semanal", "📖 Descrição das Refeições"])
+tab_planejamento, tab_descricao, tab_custos = st.tabs(["🗓️ Planejamento Semanal", "📖 Descrição das Refeições", "🛒 Lista & Custos"])
 
 cronograma = []
 
@@ -171,15 +176,8 @@ with tab_planejamento:
             st.markdown(f"### <span style='color: #4A90E2;'>{dia['label']}</span>", unsafe_allow_html=True)
             st.divider()
             for ref in dados['refeicoes']:
-                
-                # CORREÇÃO PRINCIPAL: 
-                # Congela a aleatoriedade baseada na data e na refeição. 
-                # Assim as opções geradas não mudam quando você clica em outro dia!
                 random.seed(f"{dia['data_str']}_{ref['nome']}")
-                
                 opcoes = [aplicar_substituicoes(o['descricao'], frutas_selecionadas, dados.get('saladas_disponiveis', [])) for o in ref['opcoes']]
-                
-                # Reseta o gerador aleatório para não travar outras partes da aplicação
                 random.seed()
                 
                 escolha = st.selectbox(f"{ref['nome']}", opcoes, key=f"{dia['data_str']}_{ref['nome']}")
@@ -194,6 +192,72 @@ with tab_descricao:
         with st.expander(f"🔍 {ref['nome']}{horario_str}", expanded=True):
             for o in ref['opcoes']:
                 st.markdown(f" * {o['descricao']}")
+
+# --- ABA 3: Lista de Compras com Preços e Checklist Dinâmico ---
+with tab_custos:
+    st.subheader("💲 Estimativa e Checklist de Supermercado")
+    st.markdown("Marque os itens na coluna **'✅ Peguei'** enquanto faz as compras no mercado. Você também pode ajustar os valores na coluna **'Preço Unit (R$)'** para calcular o valor real do seu carrinho!")
+    
+    if cronograma:
+        lista_compras = gerar_lista_compras(cronograma, dados)
+        precos_base = dados.get('precos_estimados', {})
+        
+        tabela_custos = []
+        for item, qtd in sorted(lista_compras.items()):
+            preco_unit = precos_base.get(item, 0.0)
+            if preco_unit == 0.0:
+                for k, v in precos_base.items():
+                    if k.lower() == item.lower():
+                        preco_unit = v
+                        break
+
+            # Adicionando a chave 'Peguei' iniciada como False (caixa desmarcada)
+            tabela_custos.append({
+                "Peguei": False, 
+                "Item": item,
+                "Qtd": qtd,
+                "Preço Unit (R$)": preco_unit
+            })
+            
+        df_custos = pd.DataFrame(tabela_custos)
+        
+        if not df_custos.empty:
+            df_editado = st.data_editor(
+                df_custos,
+                disabled=["Item", "Qtd"], # Deixa "Peguei" e "Preço" liberados para clique/edição
+                hide_index=True,
+                use_container_width=True,
+                column_config={
+                    "Peguei": st.column_config.CheckboxColumn(
+                        "✅ Peguei",
+                        help="Marque quando colocar no carrinho",
+                        default=False,
+                    ),
+                    "Preço Unit (R$)": st.column_config.NumberColumn(
+                        "Preço Unit (R$)",
+                        min_value=0.0,
+                        format="R$ %.2f"
+                    )
+                }
+            )
+            
+            # Recalcula subtotais
+            df_editado['Subtotal'] = df_editado['Qtd'] * df_editado['Preço Unit (R$)']
+            
+            # Soma geral e soma só do que já foi "ticado" na tela
+            valor_total = df_editado['Subtotal'].sum()
+            valor_carrinho = df_editado[df_editado['Peguei'] == True]['Subtotal'].sum()
+            
+            st.divider()
+            
+            # Layout com duas colunas para mostrar os totais lindamente
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown(f"<h3 style='color: #888;'>🛒 Total Estimado: R$ {valor_total:.2f}</h3>", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"<h2 style='text-align: right; color: #27AE60;'>✅ Já no Carrinho: R$ {valor_carrinho:.2f}</h2>", unsafe_allow_html=True)
+    else:
+        st.info("O cronograma ainda está vazio. Selecione os itens no Planejamento Semanal primeiro.")
 
 # --- Botões de Download Direto na Sidebar ---
 st.sidebar.markdown("---")
