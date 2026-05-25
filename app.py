@@ -11,35 +11,62 @@ from streamlit_gsheets import GSheetsConnection
 # --- Configuração ---
 st.set_page_config(page_title="Cardápio Semanal", layout="wide")
 
-# ---> O NOVO CÓDIGO CSS ENTRA AQUI:
+# --- IDENTIDADE VISUAL EXECUTIVA (CSS) ---
 st.markdown("""
     <style>
-        /* Fundo de toda a página em Azul Marinho */
+        /* Fundo principal em Lemon Chiffon (Base clara e agradável) */
         .stApp {
-            background-color: #002B5B; 
+            background-color: #F1F0CC; 
         }
         
-        /* Todos os textos, títulos e labels em Branco */
+        /* Textos principais em Rich Mahogany (Alto contraste) */
         h1, h2, h3, h4, p, li, label, div {
+            color: #3F0D12 !important;
+        }
+        
+        /* Sidebar em Rich Mahogany (Foco e separação) */
+        [data-testid="stSidebar"] {
+            background-color: #3F0D12; 
+            border-right: 2px solid #8D775F;
+        }
+        
+        /* Textos da Sidebar em Lemon Chiffon */
+        [data-testid="stSidebar"] * {
+            color: #F1F0CC !important;
+        }
+        
+        /* Selectboxes em Soft Fawn (Destaque sutil) */
+        .stSelectbox div[data-baseweb="select"] {
+            background-color: #D5BF86 !important;
+            color: #3F0D12 !important;
+            border: 1px solid #8D775F !important;
+        }
+        
+        /* Botões em Ruby Red (Ação principal) */
+        div.stButton > button:first-child {
+            background-color: #A71D31;
+            color: #F1F0CC !important;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+        }
+        
+        /* Hover dos Botões em Faded Copper */
+        div.stButton > button:hover {
+            background-color: #8D775F;
             color: #FFFFFF !important;
         }
         
-        /* Ajuste específico para a Sidebar para manter o contraste */
-        [data-testid="stSidebar"] {
-            background-color: #001f3f; 
+        /* Linhas divisórias em Soft Fawn */
+        hr {
+            border-top: 2px solid #D5BF86 !important;
         }
         
-        /* Ajuste dos inputs e selectboxes */
-        .stSelectbox div[data-baseweb="select"] {
-            background-color: #001f3f !important;
-            color: white !important;
-        }
-        
-        /* Botões */
-        div.stButton > button:first-child {
+        /* Fundo branco para a tabela de dados para manter legibilidade */
+        [data-testid="stDataFrame"] {
             background-color: #FFFFFF;
-            color: #002B5B;
-            font-weight: bold;
+            border-radius: 8px;
+            border: 1px solid #D5BF86;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -131,25 +158,31 @@ def gerar_lista_compras(cronograma, dados):
             
     return lista_final
 
-# --- Funções de Geração de PDF ---
+# --- Funções de Geração de PDF (Identidade Visual Aplicada) ---
 def gerar_pdf_cronograma(cronograma_data):
     pdf = FPDF()
     pdf.add_page()
+    
+    # Título Principal em Rich Mahogany
     pdf.set_font("Arial", 'B', 20)
+    pdf.set_text_color(63, 13, 18) 
     pdf.cell(0, 15, "CRONOGRAMA SEMANAL", ln=True, align='C')
     pdf.ln(5)
     
     df = pd.DataFrame(cronograma_data)
     if not df.empty:
-        # Itera sobre os dias únicos já formatados com Data e Dia da Semana
         for label in df['LabelPDF'].unique():
             pdf.ln(4)
+            # Fundo Soft Fawn, Texto Rich Mahogany
             pdf.set_font("Arial", 'B', 12)
-            pdf.set_fill_color(230, 240, 255) # Azul claro padronizado
+            pdf.set_fill_color(213, 191, 134) 
+            pdf.set_text_color(63, 13, 18)
             pdf.cell(0, 8, f" {label.upper()}", ln=True, fill=True)
             pdf.ln(2)
             
+            # Texto Normal Rich Mahogany
             pdf.set_font("Arial", '', 11)
+            pdf.set_text_color(63, 13, 18)
             for _, row in df[df['LabelPDF'] == label].iterrows():
                 linha = f"   {row['Refeição']}: {row['Item']}"
                 pdf.cell(0, 7, linha.encode('latin-1', 'replace').decode('latin-1'), ln=True)
@@ -159,7 +192,10 @@ def gerar_pdf_cronograma(cronograma_data):
 def gerar_pdf_compras(cronograma_data, dados_json):
     pdf = FPDF()
     pdf.add_page()
+    
+    # Título Principal em Rich Mahogany
     pdf.set_font("Arial", 'B', 20)
+    pdf.set_text_color(63, 13, 18)
     pdf.cell(0, 15, "LISTA DE COMPRAS", ln=True, align='C')
     pdf.ln(5)
     
@@ -174,12 +210,16 @@ def gerar_pdf_compras(cronograma_data, dados_json):
     
     for cat in sorted(categorias_map.keys()):
         pdf.ln(4)
+        # Fundo Soft Fawn, Texto Rich Mahogany
         pdf.set_font("Arial", 'B', 12)
-        pdf.set_fill_color(230, 240, 255) # Azul claro padronizado
+        pdf.set_fill_color(213, 191, 134)
+        pdf.set_text_color(63, 13, 18)
         pdf.cell(0, 8, f" {cat.upper()}", ln=True, fill=True)
         pdf.ln(2)
         
+        # Texto Normal Rich Mahogany
         pdf.set_font("Arial", '', 11)
+        pdf.set_text_color(63, 13, 18)
         for item, qtd in sorted(categorias_map[cat]):
             if "(Kg)" in item or "(Pacote" in item or "(Dúzia)" in item:
                 linha = f"   [  ] {qtd} - {item}"
@@ -199,7 +239,6 @@ def buscar_precos_nuvem():
         return dict(zip(df_planilha['Item'], df_planilha['Preco']))
     except Exception as e:
         return carregar_dados().get('precos_estimados', {})
-
 
 # --- Interface Principal ---
 st.title("Sistema de Gestão Alimentar")
@@ -267,7 +306,7 @@ for dia in dias_info:
             
         cronograma.append({
             "Data": dia['data_str'], 
-            "LabelPDF": dia['label_pdf'], # Rótulo rico para o PDF
+            "LabelPDF": dia['label_pdf'], 
             "Refeição": ref['nome'], 
             "Item": item_atual, 
             "Opcoes": opcoes, 
@@ -281,7 +320,8 @@ if menu_selecionado == "Planejamento Semanal":
     for i, dia in enumerate(dias_info):
         col = cols[i % 7]
         with col:
-            st.markdown(f"#### <span style='color: #2C3E50;'>{dia['label_interface']}</span>", unsafe_allow_html=True)
+            # Título do dia em Ruby Red para destaque sutil na UI clara
+            st.markdown(f"#### <span style='color: #A71D31;'>{dia['label_interface']}</span>", unsafe_allow_html=True)
             st.divider()
             
             itens_do_dia = [c for c in cronograma if c["Data"] == dia['data_str']]
@@ -350,9 +390,11 @@ elif menu_selecionado == "Lista de Compras e Custos":
             st.divider()
             col1, col2 = st.columns(2)
             with col1:
-                st.markdown(f"<h3 style='color: #7F8C8D;'>Previsão Total: R$ {valor_total:.2f}</h3>", unsafe_allow_html=True)
+                # Previsão em Faded Copper
+                st.markdown(f"<h3 style='color: #8D775F;'>Previsão Total: R$ {valor_total:.2f}</h3>", unsafe_allow_html=True)
             with col2:
-                st.markdown(f"<h3 style='text-align: right; color: #27AE60;'>Subtotal Carrinho: R$ {valor_carrinho:.2f}</h3>", unsafe_allow_html=True)
+                # Subtotal em Ruby Red para atenção
+                st.markdown(f"<h3 style='text-align: right; color: #A71D31;'>Subtotal Carrinho: R$ {valor_carrinho:.2f}</h3>", unsafe_allow_html=True)
             
             st.markdown("---")
             if st.button("Salvar Novos Preços no Banco de Dados"):
