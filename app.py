@@ -20,7 +20,7 @@ st.markdown("""
         }
         
         /* Textos principais em Rich Mahogany (Alto contraste) */
-        h1, h2, h3, h4, p, li, label, div {
+        h1, h2, h3, h4, p, label {
             color: #3F0D12 !important;
         }
         
@@ -31,15 +31,44 @@ st.markdown("""
         }
         
         /* Textos da Sidebar em Lemon Chiffon */
-        [data-testid="stSidebar"] * {
+        [data-testid="stSidebar"] h1, 
+        [data-testid="stSidebar"] h2, 
+        [data-testid="stSidebar"] h3, 
+        [data-testid="stSidebar"] p, 
+        [data-testid="stSidebar"] label, 
+        [data-testid="stSidebar"] span {
             color: #F1F0CC !important;
         }
         
-        /* Selectboxes em Soft Fawn (Destaque sutil) */
-        .stSelectbox div[data-baseweb="select"] {
-            background-color: #D5BF86 !important;
+        /* --- CORREÇÃO DE CONTRASTE DOS SELECTBOXES --- */
+        /* 1. Caixa do Selectbox (Fechada) */
+        div[data-baseweb="select"] > div {
+            background-color: #FFFFFF !important;
+            border: 2px solid #8D775F !important;
+        }
+        /* Texto da Caixa Fechada */
+        div[data-baseweb="select"] span {
             color: #3F0D12 !important;
+            font-weight: 500;
+        }
+        /* Ícone da setinha do Selectbox */
+        div[data-baseweb="select"] svg {
+            fill: #3F0D12 !important;
+        }
+        /* 2. Menu de Opções (Aberto) */
+        ul[data-baseweb="menu"] {
+            background-color: #FFFFFF !important;
             border: 1px solid #8D775F !important;
+        }
+        /* Texto dos Itens do Menu */
+        ul[data-baseweb="menu"] li {
+            color: #3F0D12 !important;
+            background-color: #FFFFFF !important;
+        }
+        /* Hover nos Itens do Menu (Efeito ao passar o mouse/dedo) */
+        ul[data-baseweb="menu"] li:hover {
+            background-color: #F1F0CC !important;
+            color: #A71D31 !important;
         }
         
         /* Botões em Ruby Red (Ação principal) */
